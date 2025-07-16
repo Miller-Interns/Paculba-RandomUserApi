@@ -1,7 +1,16 @@
 <script setup lang="ts">
-// export default {
-//   name: 'RandomUserApp',
-// };
+import userContainer from '@/components/user-container.vue'
+import buttonFormats from '@/components/button-filter.vue'
+import { ref } from 'vue'
+
+const activeFilter = ref<'ALL' | 'MALE' | 'FEMALE'>('ALL')
+
+function runFilterFunction(selectedFilter: 'ALL' | 'MALE' | 'FEMALE') {
+  console.log(`The function was run! Filtering by: ${selectedFilter}`)
+  activeFilter.value = selectedFilter
+
+  // fetchUsers({ gender: selectedFilter });
+}
 </script>
 
 <template>
@@ -10,22 +19,18 @@
 
     <div class="filter-container">
       <span class="filter-label">FILTER:</span>
-      <button class="filter-button">ALL</button>
+      <buttonFormats @filter-selected="runFilterFunction" />
     </div>
 
     <div class="user-lists">
       <!-- Left Column -->
       <div class="user-column">
-        <div v-for="n in 6" :key="`left-${n}`" class="user-card-simple"></div>
-        <div class="bottom-indicator"></div>
+        <userContainer />
       </div>
 
       <!-- Right Column -->
       <div class="user-column">
-        <div v-for="n in 6" :key="`right-${n}`" class="user-card-with-avatar">
-          <div class="avatar-placeholder"></div>
-        </div>
-        <div class="bottom-indicator"></div>
+        <userContainer />
       </div>
     </div>
   </div>
@@ -42,7 +47,7 @@
 }
 
 .app-title {
-  font-family: 'Bungee', cursive;
+  font-family: 'Poppins';
   font-size: clamp(2rem, 5vw, 3rem);
   font-weight: 400;
   color: #eae3dd;
@@ -92,34 +97,5 @@
   flex-direction: column;
   align-items: center;
   gap: 18px;
-}
-
-.user-card-simple,
-.user-card-with-avatar {
-  background-color: #eae3dd;
-  width: 100%;
-  height: 55px;
-  border-radius: 27.5px; /* height / 2 */
-}
-
-.user-card-with-avatar {
-  display: flex;
-  align-items: center;
-  padding: 0 7px;
-}
-
-.avatar-placeholder {
-  width: 41px; /* Slightly smaller than height to fit inside */
-  height: 41px;
-  background-color: #8a7d78;
-  border-radius: 50%;
-}
-
-.bottom-indicator {
-  width: 28px;
-  height: 28px;
-  background-color: #8a7d78;
-  border-radius: 50%;
-  margin-top: 10px;
 }
 </style>

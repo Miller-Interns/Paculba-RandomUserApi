@@ -4,13 +4,18 @@ import { RouterView } from 'vue-router'
 </script>
 
 <template>
-  <div id="app-wrapper">
-    <RouterView />
+  <nav>
+    <a href =  "#" class = "logo">  </a>
+  
+  </nav>
+  <div class="app-wrapper">
+  <RouterView />
   </div>
+
 </template>
 
 <style scoped>
-#app-wrapper {
+.app-wrapper {
   display: flex;
   justify-content: center;
   align-items: center;
