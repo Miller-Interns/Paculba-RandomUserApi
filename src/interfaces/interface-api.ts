@@ -1,4 +1,4 @@
-import type User from './interface-user.ts'
+import type{ User} from './interface-user.ts'
 
 export interface ApiResponse {
   results: User[]
