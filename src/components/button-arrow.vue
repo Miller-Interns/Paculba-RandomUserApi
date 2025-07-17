@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import prevButton from '@/icons/icon-left.vue'
-import nextButton from '@/icons/icon-right.vue'
+// import prevButton from '@/icons/icon-left.vue'
+// import nextButton from '@/icons/icon-right.vue'
 import { defineProps, defineEmits } from 'vue'
 
 defineProps({
@@ -32,7 +32,7 @@ const emit = defineEmits(['prev', 'next'])
       @click="emit('prev')"
       aria-label="Previous page"
     >
-      <prevButton class="icon" />
+      <!-- <prevButton class="icon" /> -->
     </button>
     
     <span class="page-indicator">Page {{ currentPage }}</span>
@@ -43,7 +43,7 @@ const emit = defineEmits(['prev', 'next'])
       @click="emit('next')"
       aria-label="Next page"
     >
-      <nextButton class="icon" />
+      <!-- <nextButton class="icon" /> -->
     </button>
   </div>
 </template>

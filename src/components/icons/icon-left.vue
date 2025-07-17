@@ -1,22 +1,9 @@
-<template>
-  <svg-icon type="mdi" :path="path"></svg-icon>
-</template>
+<script setup lang="ts">
+import SvgIcon from '@jamescoyle/vue-icon'
+import { mdiMenuLeft } from '@mdi/js'
 
-<script>
-import SvgIcon from '@jamescoyle/vue-icon';
-import { mdiMenuLeft } from '@mdi/js';
-
-export default {
-  name: "my-component",
-  components: {
-    SvgIcon
-  },
-  data() {
-    return {
-       path: mdiMenuLeft,
-    }
-  }
-}
+const path = mdiMenuLeft
 </script>
-
-<!-- add functionalities here -->
+<template>
+  <svg-icon type="mdi" :path="path" />
+</template>
