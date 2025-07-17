@@ -4,14 +4,9 @@ import { RouterView } from 'vue-router'
 </script>
 
 <template>
-  <nav>
-    <a href =  "#" class = "logo">  </a>
-  
-  </nav>
   <div class="app-wrapper">
-  <RouterView />
+    <RouterView />
   </div>
-
 </template>
 
 <style scoped>

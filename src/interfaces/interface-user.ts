@@ -62,3 +62,11 @@ export interface User {
   picture: Picture
   nat: string
 }
+
+export const FILTERS = {
+  ALL: 'all',
+  FEMALE: 'female',
+  MALE: 'male',
+} as const
+
+export type Filter = (typeof FILTERS)[keyof typeof FILTERS]

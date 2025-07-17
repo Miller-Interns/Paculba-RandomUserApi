@@ -1,55 +1,58 @@
-// src/stores/user-store.ts
-
 import { defineStore } from 'pinia'
 import type { User } from '@/interfaces/interface-user.ts' // Make sure this path points to your interfaces
+import { FILTERS, type Filter } from '@/interfaces/interface-user.ts' // Make sure this path points to your interfaces
 
-const USER_CACHE_KEY = 'random_user_app_cache'
-
-// ✅ HELPER FUNCTION to safely get data from session storage.
-function getCachedUsers(): Record<number, User[]> {
-  const cachedData = sessionStorage.getItem(USER_CACHE_KEY)
-  if (cachedData) {
-    try {
-      // Safely parse the data; if it's invalid, return an empty object.
-      return JSON.parse(cachedData)
-    } catch (e) {
-      console.error('Failed to parse cached user data.', e)
-      return {}
-    }
-  }
-  return {}
-}
+const BASE_CACHE_KEY = 'user_app_cache'
 
 export const useUserStore = defineStore('user', {
   state: () => ({
-    // This structure maps a page number (key) to an array of users (value)
     users: {} as Record<number, User[]>,
     currentPage: 1,
+    activeFilter: FILTERS.ALL as Filter,
     isLoading: false,
     error: null as string | null,
+    selectedUser: null as User | null,
   }),
+
   actions: {
     setUsers(page: number, users: User[]) {
-      // Use the spread operator to ensure reactivity
-      console.log(`STORE: Setting ${users.length} users for page ${page}.`)
       this.users = { ...this.users, [page]: users }
+      console.log(`STORE: Cached users for page ${page} with filter "${this.activeFilter}".`)
     },
+
     setCurrentPage(page: number) {
       this.currentPage = page
     },
+
     setLoading(loading: boolean) {
       this.isLoading = loading
     },
+
     setError(error: string | null) {
       this.error = error
     },
 
-    // ✅ NEW ACTION to purge the cache.
+    setFilter(newFilter: Filter) {
+      if (this.activeFilter !== newFilter) {
+        console.log(`STORE: Filter changed to "${newFilter}". Purging old data.`)
+        this.purgeUsers()
+        this.activeFilter = newFilter
+        this.currentPage = 1
+      }
+    },
+
     purgeUsers() {
-      console.log('PURGING USER CACHE...')
       this.users = {}
-      this.currentPage = 1
-      sessionStorage.removeItem(USER_CACHE_KEY)
+      this.error = null
+    },
+
+    selectUser(user: User) {
+      console.log('STORE ACTION: selectUser called with', user.name.first)
+      this.selectedUser = user
+    },
+
+    clearSelectedUser() {
+      this.selectedUser = null
     },
   },
 })

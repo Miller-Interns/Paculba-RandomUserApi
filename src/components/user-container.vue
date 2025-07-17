@@ -1,18 +1,19 @@
 <script setup lang="ts">
-defineProps({
-  user: {
-    type: Object,
-    required: true,
-    default: () => ({
-      name: { first: 'User', last: 'Name' },
-      picture: { medium: '' },
-    }),
-  },
-})
+import type { User } from '@/interfaces/interface-user.ts'
+
+const props = defineProps<{
+  user: User
+}>()
+
+const emit = defineEmits(['show-details'])
+
+function handleContainerClick() {
+  emit('show-details', props.user)
+}
 </script>
 
 <template>
-  <div class="user-container">
+  <div class="user-container" @click="handleContainerClick">
     <div class="avatar">
       <img
         v-if="user.picture.medium"
@@ -37,6 +38,15 @@ defineProps({
   padding: 0 7px; /* Provides spacing at the edges, especially for the avatar */
   gap: 12px; /* Creates a clean space between the avatar and the name */
   box-sizing: border-box;
+  cursor: pointer;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+
+.user-container:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .avatar {
