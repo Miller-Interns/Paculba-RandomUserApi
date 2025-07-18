@@ -1,104 +1,88 @@
 <script setup lang="ts">
+import { onMounted, computed } from 'vue'
+import { storeToRefs } from 'pinia'
+import { useUserStore } from '@/stores/user-store'
+import { FILTERS, type Filter, type User } from '@/interfaces/interface-user'
+
 import userContainer from '@/components/user-container.vue'
 import paginationControls from '@/components/button-arrow.vue'
 import userDetailModal from '@/components/user-detail-modal.vue'
-import { useUserStore } from '@/stores/user-store.ts'
-import { useUsers } from '@/composables/useUsers.ts'
-import { computed, onMounted, nextTick } from 'vue'
-import { FILTERS, type Filter, type User } from '@/interfaces/interface-user'
 
+// Store setup
 const store = useUserStore()
-const { fetchUsers } = useUsers()
+const { currentPage, activeFilter, isLoading, error, selectedUser } = storeToRefs(store)
 
-// Computed properties for displaying data
-const currentUsers = computed(() => store.users[store.currentPage] || [])
-const leftColumnUsers = computed(() => currentUsers.value.slice(0, 5))
-const rightColumnUsers = computed(() => currentUsers.value.slice(5, 10))
-const showPrevButton = computed(() => store.currentPage > 1)
+// Current page users from store.users (accessed directly to preserve reactivity with dynamic keys)
+const users = computed(() => store.currentUsers || []) // fallback to empty array
 
-// Fetch initial data on component mount
+const leftColumnUsers = computed(() => users.value.slice(0, 5))
+const rightColumnUsers = computed(() => users.value.slice(5))
+
+const showPrevButton = computed(() => currentPage.value > 1)
+
+// On mount: start a new session and fetch first users
 onMounted(() => {
-  if (!currentUsers.value.length) {
-    fetchUsers(1)
-  }
+  store.purgeAndResetSession()
+  store.fetchUsers(1)
 })
 
-// --- Methods for handling user interaction ---
-
-const handleNext = () => {
-  fetchUsers(store.currentPage + 1)
+// Event Handlers
+function handleNext() {
+  store.fetchUsers(currentPage.value + 1)
 }
 
-const handlePrev = () => {
-  if (store.currentPage > 1) {
-    fetchUsers(store.currentPage - 1)
-  }
+function handlePrev() {
+  if (currentPage.value > 1) store.fetchUsers(currentPage.value - 1)
 }
 
 function handleShowDetails(user: User) {
   store.selectUser(user)
 }
 
-// Handles the filter change event
 function onFilterChanged(newFilter: Filter) {
-  // 1. Do nothing if the filter hasn't changed
-  if (store.activeFilter !== newFilter) {
-    store.setFilter(newFilter)
-    fetchUsers(1)
-  }
+  store.setFilter(newFilter)
+}
+function handleRefresh() {
+  store.refresh()
 }
 </script>
 
 <template>
   <div class="app-container">
     <h1 class="app-title">WELCOME TO RANDOM USER APP!</h1>
+    <p class="gender-label">
+      Showing users:
+      <strong>{{ activeFilter.charAt(0).toUpperCase() + activeFilter.slice(1) }}</strong>
+    </p>
 
+    <!-- Filter Buttons -->
     <div class="filter-container">
       <span class="filter-label">FILTER:</span>
       <button
-        @click.prevent="onFilterChanged(FILTERS.ALL)"
+        v-for="filter in Object.values(FILTERS)"
+        :key="filter"
+        @click="onFilterChanged(filter)"
         class="filter-button"
-        :class="{ active: store.activeFilter === FILTERS.ALL }"
+        :class="{ active: activeFilter === filter }"
+        :disabled="isLoading"
       >
-        All
+        {{ filter.charAt(0).toUpperCase() + filter.slice(1) }}
       </button>
-
-      <button
-        @click.prevent="onFilterChanged(FILTERS.FEMALE)"
-        class="filter-button"
-        :class="{ active: store.activeFilter === FILTERS.FEMALE }"
-      >
-        Female
-      </button>
-
-      <button
-        @click.prevent="onFilterChanged(FILTERS.MALE)"
-        class="filter-button"
-        :class="{ active: store.activeFilter === FILTERS.MALE }"
-      >
-        Male
-      </button>
+      <button @click="handleRefresh" class="filter-button" :disabled="isLoading">Refresh</button>
     </div>
 
+    <!-- Main Content -->
     <div class="main-content">
-      <!-- FIXED: Combined the loading section into one -->
-      <div v-if="store.isLoading" class="loading">
-        <!-- Optional: Add a spinner or skeleton loader here -->
-        Loading users...
+      <div v-if="isLoading" class="loading">Loading users...</div>
+
+      <div v-else-if="error" class="error">
+        Error: {{ error }}
+        <button @click="store.fetchUsers(currentPage)">Retry</button>
       </div>
 
-      <div v-if="store.error" class="error">
-        Error: {{ store.error }}
-        <button @click="fetchUsers(store.currentPage)">Retry</button>
-      </div>
-
-      <!-- This content will show correctly now -->
-      <template v-if="!store.isLoading && !store.error">
-        <!-- ADD THIS BLOCK to handle the empty state -->
-        <div v-if="currentUsers.length === 0" class="no-users">No users found.</div>
-
-        <div class="user-lists-grid">
-          <!-- Left Column -->
+      <template v-else>
+        <div v-if="users.length === 0" class="no-users">No users found.</div>
+        <div v-else class="user-lists-grid">
           <div class="user-column">
             <userContainer
               v-for="user in leftColumnUsers"
@@ -108,7 +92,6 @@ function onFilterChanged(newFilter: Filter) {
             />
           </div>
 
-          <!-- Right Column -->
           <div class="user-column">
             <userContainer
               v-for="user in rightColumnUsers"
@@ -118,22 +101,21 @@ function onFilterChanged(newFilter: Filter) {
             />
           </div>
         </div>
-        <!-- ✅ CORRECTION: ADDED THE MISSING CLOSING DIV HERE -->
-
-        <paginationControls
-          :current-page="store.currentPage"
-          :is-loading="store.isLoading"
-          :show-prev="showPrevButton"
-          @prev="handlePrev"
-          @next="handleNext"
-        />
-        <userDetailModal
-          v-if="store.selectedUser"
-          :user="store.selectedUser"
-          @close="store.clearSelectedUser()"
-        />
       </template>
     </div>
+
+    <!-- Pagination Controls -->
+    <paginationControls
+      v-if="!store.error"
+      :current-page="currentPage"
+      :is-loading="isLoading"
+      :show-prev="showPrevButton"
+      @prev="handlePrev"
+      @next="handleNext"
+    />
+
+    <!-- User Detail Modal -->
+    <userDetailModal v-if="selectedUser" :user="selectedUser" @close="store.clearSelectedUser()" />
   </div>
 </template>
 
@@ -193,7 +175,7 @@ function onFilterChanged(newFilter: Filter) {
   font-size: 1.2rem;
   text-align: center;
   width: 100%;
-  min-height: 300px; /* Reserve space while loading */
+  min-height: 300px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -217,7 +199,7 @@ function onFilterChanged(newFilter: Filter) {
   color: #eae3dd;
   border: none;
   border-radius: 20px;
-  padding: 8px 25px; /* Fine-tuned padding */
+  padding: 8px 25px;
   font-size: 1rem;
   font-weight: bold;
   cursor: pointer;
@@ -225,7 +207,19 @@ function onFilterChanged(newFilter: Filter) {
 }
 
 .filter-button:hover {
-  background-color: #7a6e69;
+  /* background-color: #7a6e69; */
+  background-color: #998b86;
+}
+
+.filter-button.active {
+  background-color: #f2eae4;
+  color: #000;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.filter-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .no-users {

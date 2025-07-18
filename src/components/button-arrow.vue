@@ -6,19 +6,17 @@ import { defineProps, defineEmits } from 'vue'
 defineProps({
   currentPage: {
     type: Number,
-    required: true
+    required: true,
   },
   isLoading: {
     type: Boolean,
-    default: false
+    default: false,
   },
   showPrev: {
     type: Boolean,
-    default: true
-  }
+    default: true,
+  },
 })
-
-
 
 const emit = defineEmits(['prev', 'next'])
 </script>
@@ -34,17 +32,15 @@ const emit = defineEmits(['prev', 'next'])
     >
       <!-- <prevButton class="icon" /> -->
     </button>
-    
+
     <span class="page-indicator">Page {{ currentPage }}</span>
-    
+
     <button
       class="pagination-button"
       :disabled="isLoading"
       @click="emit('next')"
       aria-label="Next page"
-    >
-      <!-- <nextButton class="icon" /> -->
-    </button>
+    ></button>
   </div>
 </template>
 
@@ -57,24 +53,22 @@ const emit = defineEmits(['prev', 'next'])
   margin-top: 2rem;
 }
 
-
-.pagination-button{
+.pagination-button {
   width: 2.5rem;
   height: 2.5rem;
   border-radius: 50%;
   background-color: #8a7d78;
-  color:white;
+  color: white;
   border-radius: 50%;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition:all 0.2s ease;
- 
+  transition: all 0.2s ease;
 }
 
 .pagination-button:hover:not(:disabled) {
- background-color: #2d2d2d;
+  background-color: #2d2d2d;
   transform: scale(1.05);
 }
 
@@ -91,6 +85,7 @@ const emit = defineEmits(['prev', 'next'])
 .icon {
   width: 1.25rem;
   height: 1.25rem;
+  color: #eae3dd;
 }
 
 .page-indicator {
@@ -99,5 +94,4 @@ const emit = defineEmits(['prev', 'next'])
   font-weight: 500;
   color: var(--color-text);
 }
-
 </style>

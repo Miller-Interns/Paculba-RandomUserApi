@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import type { User } from '@/interfaces/interface-user'
 
-// The modal expects the full user object to display.
 defineProps<{
   user: User
 }>()
 
-// It will emit a 'close' event when the user wants to close it.
 const emit = defineEmits(['close'])
 
 const formattedDob = (dateString: string) => {
@@ -66,7 +64,6 @@ const formattedDob = (dateString: string) => {
 </template>
 
 <style scoped>
-/* Use the same font for consistency */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
 
 .modal-overlay {
@@ -75,7 +72,7 @@ const formattedDob = (dateString: string) => {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.7); /* A darker overlay for better focus */
+  background-color: rgba(0, 0, 0, 0.7);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -86,7 +83,7 @@ const formattedDob = (dateString: string) => {
 
 .modal-content {
   font-family: 'Poppins', sans-serif;
-  background: #fdfbf9; /* A very light beige, softer than pure white */
+  background: #fdfbf9;
   color: #3f3836;
   padding: 2rem;
   border-radius: 12px;
@@ -108,7 +105,7 @@ const formattedDob = (dateString: string) => {
   font-size: 2.5rem;
   font-weight: 300;
   line-height: 1;
-  color: #8a7d78; /* Use theme color */
+  color: #8a7d78;
   cursor: pointer;
   transition: color 0.2s;
 }
@@ -119,7 +116,7 @@ const formattedDob = (dateString: string) => {
 
 .modal-header {
   text-align: center;
-  border-bottom: 1px solid #eae3dd; /* Use theme color */
+  border-bottom: 1px solid #eae3dd;
   padding-bottom: 1.5rem;
   margin-bottom: 1.5rem;
 }
@@ -128,7 +125,7 @@ const formattedDob = (dateString: string) => {
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  border: 4px solid #eae3dd; /* Use theme color */
+  border: 4px solid #eae3dd;
   margin-bottom: 1rem;
 }
 
@@ -140,7 +137,7 @@ const formattedDob = (dateString: string) => {
 }
 
 .modal-username {
-  color: #8a7d78; /* Use theme color */
+  color: #8a7d78;
   margin: 0.25rem 0 0;
   font-weight: 400;
 }
