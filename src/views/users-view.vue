@@ -40,11 +40,6 @@ const handlePageChange = (direction: 'prev' | 'next') => {
   loadUsers()
 }
 
-const refreshList = () => {
-  userStore.resetSession()
-  loadUsers()
-}
-
 const handleShowDetails = (user: User) => {
   selectedUser.value = user
   showModal.value = true
@@ -77,14 +72,16 @@ watch(() => userStore.genderFilter, loadUsers)
 <template>
   <div class="app-container">
     <h1 class="app-title">WELCOME TO RANDOM USER APP!</h1>
-    <p class="gender-label">
-      Showing users:
-      <strong>{{ activeFilter.charAt(0).toUpperCase() + activeFilter.slice(1) }}</strong>
-    </p>
 
     <div class="filter-container">
-      <span class="filter-label">FILTER:</span>
-
+      <span class="filter-label">Filter:</span>
+      <button
+        class="filter-button"
+        :class="{ active: activeFilter === 'All' }"
+        @click="handleGenderChange('')"
+      >
+        All
+      </button>
       <button
         class="filter-button"
         :class="{ active: activeFilter === 'male' }"
@@ -98,13 +95,6 @@ watch(() => userStore.genderFilter, loadUsers)
         @click="handleGenderChange('female')"
       >
         Female
-      </button>
-      <button
-        class="filter-button"
-        :class="{ active: activeFilter === 'All' }"
-        @click="handleGenderChange('')"
-      >
-        All
       </button>
     </div>
 
@@ -190,7 +180,7 @@ watch(() => userStore.genderFilter, loadUsers)
   grid-template-columns: 1fr 1fr;
   gap: 50px;
   width: 100%;
-  margin-bottom: 20px;
+  margin-bottom: 1px;
 }
 
 .user-column {
@@ -232,13 +222,11 @@ watch(() => userStore.genderFilter, loadUsers)
   border-radius: 20px;
   padding: 8px 25px;
   font-size: 1rem;
-  font-weight: bold;
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
 
 .filter-button:hover {
-  /* background-color: #7a6e69; */
   background-color: #998b86;
 }
 
@@ -246,6 +234,7 @@ watch(() => userStore.genderFilter, loadUsers)
   background-color: #f2eae4;
   color: #000;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  font-weight: bold;
 }
 
 .filter-button:disabled {
