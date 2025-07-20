@@ -1,50 +1,77 @@
 <script setup lang="ts">
-import { onMounted, computed } from 'vue'
-import { storeToRefs } from 'pinia'
-import { useUserStore } from '@/stores/user-store'
-import { FILTERS, type Filter, type User } from '@/interfaces/interface-user'
+import { onMounted, ref, watch, computed } from 'vue'
+import { useUserStore } from '@/stores/user-store.ts'
+import type { User } from '@/interfaces/interface-user'
+import { useUserFetch } from '@/composables/useUserFetch.ts'
 
-import userContainer from '@/components/user-container.vue'
-import paginationControls from '@/components/button-arrow.vue'
-import userDetailModal from '@/components/user-detail-modal.vue'
+import UserContainer from '@/components/user-container.vue'
+import PaginationControls from '@/components/button-arrow.vue'
+import UserDetailModal from '@/components/user-detail-modal.vue'
 
-// Store setup
-const store = useUserStore()
-const { currentPage, activeFilter, isLoading, error, selectedUser } = storeToRefs(store)
+const userStore = useUserStore()
+const { users, fetchUsers, isLoading } = useUserFetch()
+const showModal = ref(false)
+const selectedUser = ref<User | null>(null)
 
-// Current page users from store.users (accessed directly to preserve reactivity with dynamic keys)
-const users = computed(() => store.currentUsers || []) // fallback to empty array
+const loadUsers = async () => {
+  const key = `users-page-${userStore.currentPage}${userStore.genderFilter ? `-${userStore.genderFilter}` : ''}`
 
-const leftColumnUsers = computed(() => users.value.slice(0, 5))
-const rightColumnUsers = computed(() => users.value.slice(5))
+  const cached = userStore.getUsersFromStorage(key)
+  if (cached) {
+    users.value = cached
+  } else {
+    await fetchUsers(userStore.currentPage, userStore.genderFilter)
+    userStore.setUsers(key, users.value)
+  }
+}
 
-const showPrevButton = computed(() => currentPage.value > 1)
+const handleGenderChange = async (gender: string) => {
+  userStore.resetSession()
+  userStore.setGenderFilter(gender)
+  await loadUsers()
+}
 
-// On mount: start a new session and fetch first users
+const handlePageChange = (direction: 'prev' | 'next') => {
+  if (direction === 'prev' && userStore.currentPage > 1) {
+    userStore.currentPage--
+  } else if (direction === 'next') {
+    userStore.currentPage++
+  }
+  loadUsers()
+}
+
+const refreshList = () => {
+  userStore.resetSession()
+  loadUsers()
+}
+
+const handleShowDetails = (user: User) => {
+  selectedUser.value = user
+  showModal.value = true
+}
+
+const handleCloseModal = () => {
+  selectedUser.value = null
+  showModal.value = false
+}
+
+const displayedUsers = computed(() => users.value || [])
+const leftColumnUsers = computed(() => displayedUsers.value.slice(0, 5))
+const rightColumnUsers = computed(() => displayedUsers.value.slice(5, 10))
+
+const currentPage = computed(() => userStore.currentPage)
+const showPrevButton = computed(() => userStore.currentPage > 1)
+const activeFilter = computed(() => userStore.genderFilter || 'All')
+
+const goPreviousPage = () => handlePageChange('prev')
+const goNextPage = () => handlePageChange('next')
+
 onMounted(() => {
-  store.purgeAndResetSession()
-  store.fetchUsers(1)
+  userStore.resetSession()
+  loadUsers()
 })
 
-// Event Handlers
-function handleNext() {
-  store.fetchUsers(currentPage.value + 1)
-}
-
-function handlePrev() {
-  if (currentPage.value > 1) store.fetchUsers(currentPage.value - 1)
-}
-
-function handleShowDetails(user: User) {
-  store.selectUser(user)
-}
-
-function onFilterChanged(newFilter: Filter) {
-  store.setFilter(newFilter)
-}
-function handleRefresh() {
-  store.refresh()
-}
+watch(() => userStore.genderFilter, loadUsers)
 </script>
 
 <template>
@@ -55,67 +82,71 @@ function handleRefresh() {
       <strong>{{ activeFilter.charAt(0).toUpperCase() + activeFilter.slice(1) }}</strong>
     </p>
 
-    <!-- Filter Buttons -->
     <div class="filter-container">
       <span class="filter-label">FILTER:</span>
+
       <button
-        v-for="filter in Object.values(FILTERS)"
-        :key="filter"
-        @click="onFilterChanged(filter)"
         class="filter-button"
-        :class="{ active: activeFilter === filter }"
-        :disabled="isLoading"
+        :class="{ active: activeFilter === 'male' }"
+        @click="handleGenderChange('male')"
       >
-        {{ filter.charAt(0).toUpperCase() + filter.slice(1) }}
+        Male
       </button>
-      <button @click="handleRefresh" class="filter-button" :disabled="isLoading">Refresh</button>
+      <button
+        class="filter-button"
+        :class="{ active: activeFilter === 'female' }"
+        @click="handleGenderChange('female')"
+      >
+        Female
+      </button>
+      <button
+        class="filter-button"
+        :class="{ active: activeFilter === 'All' }"
+        @click="handleGenderChange('')"
+      >
+        All
+      </button>
     </div>
 
     <!-- Main Content -->
     <div class="main-content">
-      <div v-if="isLoading" class="loading">Loading users...</div>
+      <div v-if="isLoading && displayedUsers.length === 0" class="loading">Loading users...</div>
 
-      <div v-else-if="error" class="error">
-        Error: {{ error }}
-        <button @click="store.fetchUsers(currentPage)">Retry</button>
+      <div v-else-if="!isLoading && displayedUsers.length === 0" class="no-users">
+        No users found.
       </div>
 
-      <template v-else>
-        <div v-if="users.length === 0" class="no-users">No users found.</div>
-        <div v-else class="user-lists-grid">
-          <div class="user-column">
-            <userContainer
-              v-for="user in leftColumnUsers"
-              :key="user.login.uuid"
-              :user="user"
-              @show-details="handleShowDetails"
-            />
-          </div>
-
-          <div class="user-column">
-            <userContainer
-              v-for="user in rightColumnUsers"
-              :key="user.login.uuid"
-              :user="user"
-              @show-details="handleShowDetails"
-            />
-          </div>
+      <div v-else class="user-lists-grid">
+        <div class="user-column">
+          <userContainer
+            v-for="user in leftColumnUsers"
+            :key="user.login.uuid"
+            :user="user"
+            @show-details="handleShowDetails"
+          />
         </div>
-      </template>
+
+        <div class="user-column">
+          <userContainer
+            v-for="user in rightColumnUsers"
+            :key="user.login.uuid"
+            :user="user"
+            @show-details="handleShowDetails"
+          />
+        </div>
+      </div>
     </div>
 
-    <!-- Pagination Controls -->
     <paginationControls
-      v-if="!store.error"
+      v-if="displayedUsers.length > 0"
       :current-page="currentPage"
       :is-loading="isLoading"
       :show-prev="showPrevButton"
-      @prev="handlePrev"
-      @next="handleNext"
+      @prev="goPreviousPage"
+      @next="goNextPage"
     />
 
-    <!-- User Detail Modal -->
-    <userDetailModal v-if="selectedUser" :user="selectedUser" @close="store.clearSelectedUser()" />
+    <userDetailModal v-if="selectedUser" :user="selectedUser" @close="handleCloseModal" />
   </div>
 </template>
 
