@@ -29,14 +29,14 @@ function handleContainerClick() {
 
 <style scoped>
 .user-container {
-  background-color: #eae3dd; /* The light beige background from the image */
+  background-color: #eae3dd;
   width: 100%;
   height: 55px;
-  border-radius: 27.5px; /* This creates the perfectly rounded ends (height / 2) */
+  border-radius: 27.5px;
   display: flex;
   align-items: center;
-  padding: 0 7px; /* Provides spacing at the edges, especially for the avatar */
-  gap: 12px; /* Creates a clean space between the avatar and the name */
+  padding: 0 7px;
+  gap: 12px;
   box-sizing: border-box;
   cursor: pointer;
   transition:
@@ -52,25 +52,25 @@ function handleContainerClick() {
 .avatar {
   width: 41px;
   height: 41px;
-  border-radius: 50%; /* Makes the div a perfect circle */
-  background-color: #8a7d78; /* The darker taupe color for the placeholder circle */
-  flex-shrink: 0; /* Prevents the circle from resizing */
-  overflow: hidden; /* Ensures the image inside is clipped to the circle's shape */
+  border-radius: 50%;
+  background-color: #8a7d78;
+  flex-shrink: 0;
+  overflow: hidden;
 }
 
 .avatar-image {
   width: 100%;
   height: 100%;
-  object-fit: cover; /* Scales the image to fill the space without distortion */
+  object-fit: cover;
 }
 
 .user-name {
-  font-family: 'Poppins', sans-serif; /* Using a clean, modern font */
+  font-family: 'Poppins', sans-serif;
   font-weight: 500;
-  color: #3f3836; /* A dark, brownish color for good contrast */
+  color: #3f3836;
   font-size: 0.9rem;
-  white-space: nowrap; /* Prevents the name from breaking into two lines */
-  overflow: hidden; /* Hides parts of the name that don't fit */
-  text-overflow: ellipsis; /* Adds "..." if the name is too long */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>
