@@ -1,4 +1,6 @@
 import './assets/main.css'
+// import { Filter } from '@/enum.ts'
+// console.log('✅ Successfully imported Filter enum in main.ts:', Filter)
 
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
